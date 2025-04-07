@@ -1,0 +1,1 @@
+cmd /c python.exe .\\SlaveInterface\\main.py

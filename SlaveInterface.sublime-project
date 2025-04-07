@@ -1,0 +1,24 @@
+{
+	"folders":
+	[
+		
+		{
+			"path": "."
+		},
+	],
+	"build_systems":
+	[
+		{
+			"name": "Slave Interface Build Windows",
+			"working_dir": "$folder",
+			"target": "terminus_exec",
+            "cancel": "terminus_cancel_build",
+			"cmd": "run_slave.bat"
+		},
+		{
+			"name": "Get COM Ports Listed",
+			"working_dir": "$folder",
+			"shell_cmd": "python.exe -m serial.tools.list_ports -v"
+		}
+	]
+}
