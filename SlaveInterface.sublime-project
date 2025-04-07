@@ -13,7 +13,7 @@
 			"working_dir": "$folder",
 			"target": "terminus_exec",
             "cancel": "terminus_cancel_build",
-			"cmd": "run_slave.bat"
+			"shell_cmd": ".\\run_slave.bat"
 		},
 		{
 			"name": "Get COM Ports Listed",
