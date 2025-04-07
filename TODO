@@ -1,7 +1,35 @@
 Slave Interface:
- ☐ 
+	CLI Arguments:
+		If multiple arguments are passed, they will be executed from left to right with side effects, i.e., if a command changes it will propagate to the next ones
+		Position Command:
+			☐	Set Position Command
+				This command will make the robot move to the provided position and return an acknoledge token
+				-pset:[xyz-values]		-> ack<ok>
+				==	-pset:[10,10,10]
+				-pset:<vfmt>[vvalues]	-> ack<ok>
+				==	-pset:XY[10,10]
+				-pset:<coord><value>	-> ack<ok>
+				==	-pset:X10
+			☐	Get Position Command
+				This command will return the current position of the robot
+				-pget:<vfmt> -> [vvalues]
+				==	-pget:X
+				==	-pget:XYZ
 
-Frame Controller:
- ☐ 
+		Coordinate Mode:
+			☐	Set Coordinate Mode
+			This command will change how pset commands are interpreted and return an acknowledge token
+				Relative will add to the current values
+				Absolute will set from the machine 0
+				-cset:<coord-mode>	-> ack<ok>
+				==	-cset:rel
+				==	-cset:abs 
+			☐	Get Coordinate Mode
+			This command will return the current coordinate mode of the robot
+				-cget	-> <coord-mode>
+				==	-cget
+
+Frame Controller: 
+	≡	
 
 
