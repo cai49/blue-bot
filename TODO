@@ -4,11 +4,11 @@ Slave Interface:
 		Position Command:
 			☐	Set Position Command
 				This command will make the robot move to the provided position and return an acknoledge token
-				-pset:[xyz-values]		-> ack<ok>
+				✔	-pset:[xyz-values]		-> ack<ok> (25-04-12 18:02)
 				==	-pset:[10,10,10]
-				-pset:<vfmt>[vvalues]	-> ack<ok>
+				☐	-pset:<vfmt>[vvalues]	-> ack<ok>
 				==	-pset:XY[10,10]
-				-pset:<coord><value>	-> ack<ok>
+				✔	-pset:<coord><value>	-> ack<ok> (25-04-12 18:02)
 				==	-pset:X10
 			☐	Get Position Command
 				This command will return the current position of the robot
@@ -23,7 +23,7 @@ Slave Interface:
 				Absolute will set from the machine 0
 				-cset:<coord-mode>	-> ack<ok>
 				==	-cset:rel
-				==	-cset:abs 
+				==	-cset:abs
 			☐	Get Coordinate Mode
 			This command will return the current coordinate mode of the robot
 				-cget	-> <coord-mode>

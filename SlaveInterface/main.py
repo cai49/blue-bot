@@ -5,56 +5,96 @@ import time
 import random
 import serial as sr
 
-ports = serial.tools.list_ports.comports()
+# Constants
+DEVICE_SERIAL_NUMBER = "MYSN00001"
 
-serial = None
-for port in ports:
-	device_sn = port.serial_number
-	device_name = port.name
+ARG_NOSERIAL = '--no-serial'
 
-	if device_sn == "MYSN00001":
-		serial = sr.Serial(device_name, baudrate=115200, timeout=1.0)
+ARG_PSET = '-pset:'
+ARG_PGET = '-pget:'
 
-if serial == None:
-	sys.exit("Serial device not found")
+ARG_CSET = '-cset:'
+ARG_CGET = '-cget'
 
+# Flags
+__NO_SERIAL = False
+__COORD_MODE_ABS = True
 
-serial.reset_input_buffer()
-print("Serial OK")
+# Robot Coordinate Variables
+X = 0.
+Y = 0.
+Z = 0.
 
-message_ack = False
+# CLI arguments
+args = sys.argv
 
-running = True
-while running:
-	try:
-		if not message_ack:
-			package = random.randint(0,100)
-
-			print(f"Send: {package}")
-			serial.write(str(package).encode('utf-8'))
-			message_ack = True
-
-		while serial.in_waiting <= 0:
-			time.sleep(0.01)
-
-		line = serial.readline().decode('utf-8').rstrip()
+for k, arg in enumerate(args, start=1):
+	if ARG_NOSERIAL in arg:
+		__NO_SERIAL = True
+		continue
 		
-		print(line)
+	if ARG_PSET in arg:
+		arg_data = arg.removeprefix(ARG_PSET)
 
-		if line == "ok":
-			message_ack = False
-			time.sleep(.5)
-		if line == "off":
-			running = False
+		if '[' in arg_data:
+			if arg_data[0] == '[':
+				_data = arg_data.strip("[]")
+				_datums = _data.split(',')
 
-	except KeyboardInterrupt:
-		serial.reset_input_buffer()
-		serial.close()
+				match len(_datums):
+					case 3:
+						X, Y, Z = [float(datum) for datum in _datums]
+						print(f"XYZ changed: X={X}, Y={Y}, Z={Z}")
+					case 2:
+						X, Y = [float(datum) for datum in _datums]
+						print(f"XY changed: X={X}, Y={Y}")
+					case 1:
+						X = float(_datums[0])
+						print(f"X changed: X={X}")
+		else:
+			match arg_data[0]:
+				case 'X':
+					X = float(arg_data[1:])
+					print(f'X changed: {X}')
+				case 'Y':
+					Y = float(arg_data[1:])
+					print(f'Y changed: {Y}')
+				case 'Z':
+					Z = float(arg_data[1:])
+					print(f'Z changed: {Z}')
+		
+		continue
 
-		running = False
-		print("Successfully Closed Serial COM")
-	except Exception as e:
-		running = False
-		print("An Exception occurred when exiting")
-		print(e)
+	if ARG_PGET in arg:
+		arg_data = arg.removeprefix(ARG_PGET)
+		continue
+
+	if ARG_CSET in arg:
+		arg_data = arg.removeprefix(ARG_CSET)
+		continue
+
+	if ARG_CGET in arg:
+		arg_data = arg.removeprefix(ARG_CGET)
+		continue
+
+
+
+# Serial port identification
+if not __NO_SERIAL:
+	ports = serial.tools.list_ports.comports()
+
+	serial = None
+	for port in ports:
+		device_sn = port.serial_number
+		device_name = port.name
+
+		if device_sn == DEVICE_SERIAL_NUMBER:
+			serial = sr.Serial(device_name, baudrate=115200, timeout=1.0)
+
+	if serial == None:
+		sys.exit("Serial device not found")
+
+	serial.reset_input_buffer()
+	print("Serial OK")
+
 
