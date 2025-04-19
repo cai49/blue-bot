@@ -30,6 +30,12 @@ Slave Interface:
 				==	-cget
 
 Frame Controller: 
-	≡	
+	Maybe using $2USD boards can be more beneficial if any problem is to occur
+	Pi Pico Migration:
+		☐	Research
+			☐	Serial communication
+			☐	Stepper motor interfacing
+			☐	OLED Screen UI
+
 
 
