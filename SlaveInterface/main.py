@@ -6,9 +6,11 @@ import random
 import serial as sr
 
 # Constants
-DEVICE_SERIAL_NUMBER = "MYSN00001"
+TEENSY_SERIAL_NUMBER = "MYSN00001"
+RPPICO_SERIAL_NUMBER = "E6605838835BA82C"
 
-ARG_NOSERIAL = '--no-serial'
+ARG_USE_RPICO	= '--use-rpico'
+ARG_NOSERIAL= '--no-serial'
 
 ARG_PSET = '-pset:'
 ARG_PGET = '-pget:'
@@ -16,9 +18,11 @@ ARG_PGET = '-pget:'
 ARG_CSET = '-cset:'
 ARG_CGET = '-cget'
 
+
 # Flags
 __NO_SERIAL = False
 __COORD_MODE_ABS = True
+__SERIAL_NUMBER = TEENSY_SERIAL_NUMBER
 
 # Robot Coordinate Variables
 X = 0.
@@ -31,6 +35,10 @@ args = sys.argv
 for k, arg in enumerate(args, start=1):
 	if ARG_NOSERIAL in arg:
 		__NO_SERIAL = True
+		continue
+
+	if ARG_USE_RPICO in arg:
+		__SERIAL_NUMBER = RPPICO_SERIAL_NUMBER
 		continue
 		
 	if ARG_PSET in arg:
@@ -88,7 +96,7 @@ if not __NO_SERIAL:
 		device_sn = port.serial_number
 		device_name = port.name
 
-		if device_sn == DEVICE_SERIAL_NUMBER:
+		if device_sn == __SERIAL_NUMBER:
 			serial = sr.Serial(device_name, baudrate=115200, timeout=1.0)
 
 	if serial == None:
@@ -97,4 +105,12 @@ if not __NO_SERIAL:
 	serial.reset_input_buffer()
 	print("Serial OK")
 
+serial.write(str("MAKE RECEIVE").encode('utf-8'))
+
+while serial.in_waiting <= 0:
+	time.sleep(1)
+
+while serial.in_waiting > 0:
+	line = serial.readline().decode('utf-8').rstrip()
+	print(line)
 
