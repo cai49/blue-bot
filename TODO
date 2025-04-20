@@ -35,7 +35,10 @@ Frame Controller:
 		☐	Research
 			☐	Serial communication
 			☐	Stepper motor interfacing
-			☐	OLED Screen UI
+			✔	OLED Screen UI (25-04-20 04:15)
+			The OLED works even in another thread
+			✔	MicroPython or Arduino SDK (25-04-20 04:16)
+			From what I researched, MicroPython is suitable
 
 
 
