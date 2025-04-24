@@ -3,7 +3,7 @@
 	[
 		
 		{
-			"path": "."
+			"path": ".",
 		},
 	],
 	"build_systems":
@@ -13,12 +13,24 @@
 			"working_dir": "$folder",
 			"target": "terminus_exec",
             "cancel": "terminus_cancel_build",
-			"shell_cmd": ".\\run_slave.bat"
+			"shell_cmd": ".\\run_slave.bat",
 		},
 		{
 			"name": "Get COM Ports Listed",
 			"working_dir": "$folder",
-			"shell_cmd": "python.exe -m serial.tools.list_ports -v"
+			"shell_cmd": "python.exe -m serial.tools.list_ports -v",
 		}
-	]
+	],
+	"settings":
+	{
+		"LSP":
+		{
+			"LSP-pyright":
+			{
+				"enabled": true,
+				"venvPath": ".",
+    			"venv": "blue-bot"
+			},
+		},
+	},
 }
