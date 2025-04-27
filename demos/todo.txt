@@ -1,0 +1,36 @@
+from machine import Pin
+from time import sleep_us, sleep_ms, sleep
+
+s1 = Stepper()
+s2 = Stepper()
+
+sf = StepperFrame([s1, s2])
+
+s1.step(1000)
+s2.step(1000)
+
+sf.move(paral=True)
+
+class Stepper():
+    def __init__(self, pin):
+        self.pin = pin
+        self.position = 0
+    
+    def step(self):
+        self.pin.high()
+        sleep_ms(100)
+        self.pin.low()
+        sleep_ms(100)
+        
+    def move(self):
+        for i in range(self.position):
+            self.step()
+
+class StepperFrame():
+    def __init__(self, steppers):
+        self.steppers = steppers
+    
+    def move(self):
+        for stepper in self.steppers:
+            stepper.step()
+        
