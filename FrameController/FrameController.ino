@@ -1,4 +1,5 @@
 #include<AccelStepper.h>
+#include<Servo.h>
 
 void shut_device_off();
 
@@ -63,8 +64,19 @@ AccelStepper stp1(AccelStepper::DRIVER, pin_1[STP_STEP], pin_1[STP_DIR]);
 AccelStepper stp2(AccelStepper::DRIVER, pin_2[STP_STEP], pin_2[STP_DIR]);
 AccelStepper stp3(AccelStepper::DRIVER, pin_3[STP_STEP], pin_3[STP_DIR]);
 
+Servo end_effector;
+
+unsigned long currentMillis;
+unsigned long servoMillis;
+
+const unsigned long servo_refresh_rate = 15;
+
 void setup1()
 {
+  servoMillis = millis();
+
+  end_effector.attach(2);
+
   stp1.setEnablePin(pin_1[STP_EN]);
   stp1.setMaxSpeed(100.0);
   stp1.setAcceleration(50.0);
@@ -81,8 +93,28 @@ void setup1()
   stp3.moveTo(200);
 }
 
+int pos = 0;
+int reverse = 1;
 void loop2()
 {
+  currentMillis = millis();
+
+  if ((currentMillis - servoMillis >= servo_refresh_rate))
+  {
+    if (pos >= 180)
+    {
+      reverse = -1;
+    }
+    else if (pos <= 0)
+    {
+      reverse = 1;
+    }
+
+    end_effector.write(pos);
+    pos += reverse;
+    servoMillis = currentMillis;
+  }
+
   int reps = 0;
   if (stp1.distanceToGo() == 0)
   {
