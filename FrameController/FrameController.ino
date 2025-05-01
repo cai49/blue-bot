@@ -1,7 +1,9 @@
-#include "device_config.hpp"
-#include "workflow_state.hpp"
+#include<AccelStepper.h>
 
-bool led_on = false;
+void shut_device_off();
+
+volatile bool running = false;
+volatile bool steppers_notification = false;
 
 void setup() 
 {
@@ -20,10 +22,6 @@ void loop()
     Serial.print("Received: ");
     Serial.println(message);
 
-    Serial.print("CPU Temp: ");
-    Serial.print(tempmonGetTemp());
-    Serial.println("°C");
-
     int message_value = message.toInt();
     if (message_value < 75 && message_value > 50)
     {
@@ -35,6 +33,76 @@ void loop()
     }
 
     Serial.println("ok");
+  }
+
+  if (!running)
+  {
+    if (steppers_notification)
+    {
+      Serial.println("STEPPERS STOPPED");
+      steppers_notification = false;
+    }
+  }
+
+  if (running)
+  {
+    steppers_notification = true;
+  }
+}
+
+// { STEP, DIR, EN }
+int pin_1[3] = {7, 8, 9};
+int pin_2[3] = {10, 11, 12};
+int pin_3[3] = {13, 14, 15};
+
+#define STP_STEP 0
+#define STP_DIR 1
+#define STP_EN 2
+
+AccelStepper stp1(AccelStepper::DRIVER, pin_1[STP_STEP], pin_1[STP_DIR]);
+AccelStepper stp2(AccelStepper::DRIVER, pin_2[STP_STEP], pin_2[STP_DIR]);
+AccelStepper stp3(AccelStepper::DRIVER, pin_3[STP_STEP], pin_3[STP_DIR]);
+
+void setup1()
+{
+  stp1.setEnablePin(pin_1[STP_EN]);
+  stp1.setMaxSpeed(100.0);
+  stp1.setAcceleration(50.0);
+  stp1.moveTo(200);
+
+  stp2.setEnablePin(pin_2[STP_EN]);
+  stp2.setMaxSpeed(200.0);
+  stp2.setAcceleration(50.0);
+  stp2.moveTo(200);
+
+  stp3.setEnablePin(pin_3[STP_EN]);
+  stp3.setMaxSpeed(300.0);
+  stp3.setAcceleration(50.0);
+  stp3.moveTo(200);
+}
+
+void loop2()
+{
+  int reps = 0;
+  if (stp1.distanceToGo() == 0)
+  {
+    stp1.moveTo(-stp1.currentPosition());
+    reps += 1;
+  }
+
+  if (!(stp1.distanceToGo() == 0 && stp2.distanceToGo() == 0 && stp3.distanceToGo() == 0))
+  {
+    running = true;
+  }
+
+  stp1.run();
+  stp2.run();
+  stp3.run();
+
+  if (reps >= 6)
+  {
+    stp1.disableOutputs();
+    running = false;
   }
 }
 
