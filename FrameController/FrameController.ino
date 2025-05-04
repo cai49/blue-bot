@@ -1,7 +1,7 @@
 #include<AccelStepper.h>
 #include<Servo.h>
 
-void shut_device_off();
+#include "HardwareRoutines.hpp"
 
 volatile bool running = false;
 volatile bool steppers_notification = false;
@@ -51,51 +51,65 @@ void loop()
   }
 }
 
-// { STEP, DIR, EN }
-int pin_1[3] = {7, 8, 9};
-int pin_2[3] = {10, 11, 12};
-int pin_3[3] = {13, 14, 15};
+/// Stepper Motors
+  #define STP_STEP 0
+  #define STP_DIR 1
 
-#define STP_STEP 0
-#define STP_DIR 1
-#define STP_EN 2
+  // { STEP, DIR }
+  const int stp0_PINS[2] = { 7, 8 };
+  const int stp1_PINS[2] = { 10, 11 };
+  const int stp2_PINS[2] = { 13, 14 };
 
-AccelStepper stp1(AccelStepper::DRIVER, pin_1[STP_STEP], pin_1[STP_DIR]);
-AccelStepper stp2(AccelStepper::DRIVER, pin_2[STP_STEP], pin_2[STP_DIR]);
-AccelStepper stp3(AccelStepper::DRIVER, pin_3[STP_STEP], pin_3[STP_DIR]);
+  const int STP_MAX_SPEED = 400;
+  const int STP_MAX_ACCEL = 800;
+
+  const int PPR = 800;       // pulse/rev
+  const int SCREW_PITCH = 2; // mm/rev
+
+  const int STP_N = 3;
+
+/// Limit Switches
+  const int LS_N = 3;
+  const int LS_PINS[LS_N] = { 18, 19, 20 }; // X, Y, Z Axis
+  const bool LS_ACTIVE = true;
+  
+  int ls_states[3] = { false, false, false };
+
+/// Servo Motor
+  const int SERVO_PIN = 2;
+
+  unsigned long currentMillis;
+  unsigned long servoMillis;
+
+  const unsigned long servo_refresh_rate = 15;
 
 Servo end_effector;
 
-unsigned long currentMillis;
-unsigned long servoMillis;
+AccelStepper steppers[STP_N];
+AccelStepper stp0(AccelStepper::DRIVER, stp0_PINS[STP_STEP], stp0_PINS[STP_DIR]);
+AccelStepper stp1(AccelStepper::DRIVER, stp1_PINS[STP_STEP], stp1_PINS[STP_DIR]);
+AccelStepper stp2(AccelStepper::DRIVER, stp2_PINS[STP_STEP], stp2_PINS[STP_DIR]);
 
-const unsigned long servo_refresh_rate = 15;
 
 void setup1()
 {
   servoMillis = millis();
 
-  end_effector.attach(2);
+  end_effector.attach(SERVO_PIN);
 
-  stp1.setEnablePin(pin_1[STP_EN]);
-  stp1.setMaxSpeed(100.0);
-  stp1.setAcceleration(50.0);
-  stp1.moveTo(200);
+  steppers[0] = stp0;
+  steppers[1] = stp1;
+  steppers[2] = stp2;
 
-  stp2.setEnablePin(pin_2[STP_EN]);
-  stp2.setMaxSpeed(200.0);
-  stp2.setAcceleration(50.0);
-  stp2.moveTo(200);
+  configure_steppers();
 
-  stp3.setEnablePin(pin_3[STP_EN]);
-  stp3.setMaxSpeed(300.0);
-  stp3.setAcceleration(50.0);
-  stp3.moveTo(200);
+  configure_limit_switches_pinmode();
+  read_limit_switches_state(ls_states);
 }
 
 int pos = 0;
-int reverse = 1;
-void loop2()
+int reverse_dir = 1;
+void loop1()
 {
   currentMillis = millis();
 
@@ -103,39 +117,69 @@ void loop2()
   {
     if (pos >= 180)
     {
-      reverse = -1;
+      reverse_dir = -1;
     }
     else if (pos <= 0)
     {
-      reverse = 1;
+      reverse_dir = 1;
     }
 
     end_effector.write(pos);
-    pos += reverse;
+    pos += reverse_dir;
     servoMillis = currentMillis;
-  }
-
-  int reps = 0;
-  if (stp1.distanceToGo() == 0)
-  {
-    stp1.moveTo(-stp1.currentPosition());
-    reps += 1;
-  }
-
-  if (!(stp1.distanceToGo() == 0 && stp2.distanceToGo() == 0 && stp3.distanceToGo() == 0))
-  {
-    running = true;
-  }
-
-  stp1.run();
-  stp2.run();
-  stp3.run();
-
-  if (reps >= 6)
-  {
-    stp1.disableOutputs();
-    running = false;
   }
 }
 
-void shut_device_off() { for (;;) {} }
+void shut_device_off(void) { for (;;) {} }
+
+float get_position_meters(int axis)
+{
+  long steps = steppers[axis].currentPosition();
+
+  float turns = steps / PPR; // revs
+
+  return turns * SCREW_PITCH;
+}
+
+void configure_stepper(int axis)
+{
+  steppers[axis].setMaxSpeed(STP_MAX_SPEED);
+  steppers[axis].setAcceleration(STP_MAX_ACCEL);
+}
+
+void configure_steppers(void)
+{
+  for (int i = 0; i < STP_N; ++i)
+  {
+    configure_stepper(i);
+  }
+}
+
+void configure_limit_switches_pinmode(void)
+{
+  for (int i = 0; i < LS_N; ++i)
+  {
+    pinMode(LS_PINS[i], INPUT);
+  }
+}
+
+void read_limit_switches_state(int *ls_states)
+{
+  for (int i = 0; i < LS_N; ++i)
+  {
+    ls_states[i] = digitalRead(LS_PINS[i]);
+  }
+}
+
+void scan_for_zero(int axis)
+{
+  read_limit_switches_state(ls_states);
+
+  if (ls_states[axis])
+  {
+    steppers[axis].setCurrentPosition(0);
+    steppers[axis].moveTo(400);
+
+    configure_stepper(axis);
+  }
+}
