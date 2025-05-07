@@ -1,6 +1,7 @@
 #include<AccelStepper.h>
 #include<Servo.h>
 
+#include "Configuration.hpp"
 #include "HardwareRoutines.hpp"
 
 volatile bool running = false;
@@ -51,38 +52,6 @@ void loop()
   }
 }
 
-/// Stepper Motors
-  #define STP_STEP 0
-  #define STP_DIR 1
-
-  // { STEP, DIR }
-  const int stp0_PINS[2] = { 7, 8 };
-  const int stp1_PINS[2] = { 10, 11 };
-  const int stp2_PINS[2] = { 13, 14 };
-
-  const int STP_MAX_SPEED = 400;
-  const int STP_MAX_ACCEL = 800;
-
-  const int PPR = 800;       // pulse/rev
-  const int SCREW_PITCH = 2; // mm/rev
-
-  const int STP_N = 3;
-
-/// Limit Switches
-  const int LS_N = 3;
-  const int LS_PINS[LS_N] = { 18, 19, 20 }; // X, Y, Z Axis
-  const bool LS_ACTIVE = true;
-  
-  int ls_states[3] = { false, false, false };
-
-/// Servo Motor
-  const int SERVO_PIN = 2;
-
-  unsigned long currentMillis;
-  unsigned long servoMillis;
-
-  const unsigned long servo_refresh_rate = 15;
-
 Servo end_effector;
 
 AccelStepper steppers[STP_N];
@@ -102,9 +71,13 @@ void setup1()
   steppers[2] = stp2;
 
   configure_steppers();
-
   configure_limit_switches_pinmode();
-  read_limit_switches_state(ls_states);
+
+  find_zeros();
+
+  delay(1000);
+
+  set_position(50, 50, 50);
 }
 
 int pos = 0;
@@ -113,7 +86,7 @@ void loop1()
 {
   currentMillis = millis();
 
-  if ((currentMillis - servoMillis >= servo_refresh_rate))
+  if (currentMillis - servoMillis >= servo_refresh_rate)
   {
     if (pos >= 180)
     {
@@ -128,18 +101,11 @@ void loop1()
     pos += reverse_dir;
     servoMillis = currentMillis;
   }
+
+  update_steppers();
 }
 
 void shut_device_off(void) { for (;;) {} }
-
-float get_position_meters(int axis)
-{
-  long steps = steppers[axis].currentPosition();
-
-  float turns = steps / PPR; // revs
-
-  return turns * SCREW_PITCH;
-}
 
 void configure_stepper(int axis)
 {
@@ -171,15 +137,121 @@ void read_limit_switches_state(int *ls_states)
   }
 }
 
-void scan_for_zero(int axis)
+bool _scan_for_zero(int axis)
 {
   read_limit_switches_state(ls_states);
-
+  
   if (ls_states[axis])
   {
     steppers[axis].setCurrentPosition(0);
-    steppers[axis].moveTo(400);
+    return true;
+  }
+  return false;
+}
 
-    configure_stepper(axis);
+void find_zeros()
+{
+  for (int i = 0; i < STP_N; ++i)
+  {
+    steppers[i].setSpeed(ZERO_SPEED);
+
+    // 0:X | 1:Y | 2:Z
+    while (!_scan_for_zero(i))
+    {
+      steppers[i].run();
+    }
+
+    steppers[i].moveTo(400);
+
+    while(steppers[i].distanceToGo() != 0)
+    {
+      steppers[i].run();
+    }
+
+    steppers[i].setSpeed(ZERO_SPEED);
+    while (!_scan_for_zero(i))
+    {
+      steppers[i].run();
+    }
+
+    String message = "Axis {" + String(i) + "} found Zero";
+    Serial.println(message);
+  }
+}
+
+float _get_position_meters(int axis)
+{
+  float steps = steppers[axis].currentPosition();
+
+  float turns = steps / PPR; // revs
+
+  float travel = turns * SCREW_PITCH; // mm
+
+  return travel;
+}
+
+long _get_pulses(int travel)
+{
+  float turns = travel / SCREW_PITCH; // revs
+  
+  long pulses = turns * PPR; // pulses
+
+  return pulses;
+}
+
+bool set_position(int x, int y, int z)
+{
+  long x_pul = _get_pulses(x);
+  long y_pul = _get_pulses(y);
+  long z_pul = _get_pulses(z);
+
+  long positions[3] = { x_pul, y_pul, z_pul };
+
+  for (int i = 0; i < STP_N; ++i)
+  {
+    AccelStepper current_stepper = steppers[i];
+
+    current_stepper.moveTo(positions[i]);
+
+    if (current_stepper.distanceToGo() != 0)
+    {
+      current_stepper.run();
+    }
+  }
+
+  return true;
+}
+
+void set_position_now(int x, int y, int z)
+{
+  long x_pul = _get_pulses(x);
+  long y_pul = _get_pulses(y);
+  long z_pul = _get_pulses(z);
+
+  long positions[3] = { x_pul, y_pul, z_pul };
+
+  for (int i = 0; i < STP_N; ++i)
+  {
+    AccelStepper current_stepper = steppers[i];
+
+    current_stepper.moveTo(positions[i]);
+
+    while (current_stepper.distanceToGo() != 0)
+    {
+      current_stepper.run();
+    }
+  }
+}
+
+void update_steppers(void)
+{
+  for (int i = 0; i < STP_N; ++i)
+  {
+    AccelStepper current_stepper = steppers[i];
+
+    if (current_stepper.distanceToGo() != 0)
+    {
+      current_stepper.run();
+    }
   }
 }

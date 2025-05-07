@@ -1,7 +1,9 @@
 ﻿ppr = 800 pulse/rev => 800 pulse/rev
-pitch = 2 mm/rev => 2 mm/rev
+pitch = 8 mm/rev => 8 mm/rev
 
 steps = 4000 pulse => 4,000 pulse
 turns = steps / ppr => 5 rev
 
-travel = turns * pitch => 10 mm
+travel = turns * pitch => 40 mm
+
+pulses = travel / pitch * ppr => 4,000 pulse
