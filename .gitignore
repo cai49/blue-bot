@@ -13,6 +13,10 @@
 # For PCBs designed using KiCad: https://www.kicad.org/
 # Format documentation: https://kicad.org/help/file-formats/
 
+# Gerber Output
+/Electronics/blue-bot-board/Gerber
+/Electronics/blue-bot-board/views
+
 # Temporary files
 *.000
 *.bak
@@ -41,3 +45,4 @@ fp-info-cache
 # Exported BOM files
 *.xml
 *.csv
+*.step
