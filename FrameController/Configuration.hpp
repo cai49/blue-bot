@@ -20,7 +20,7 @@
 
 /// Limit Switches
   const int LS_N = 3;
-  const int LS_PINS[LS_N] = { 18, 19, 20 }; // X, Y, Z Axis
+  const int LS_PINS[LS_N] = { 20, 19, 18 }; // X, Y, Z Axis
   const bool LS_ACTIVE = true;
   
   int ls_states[3] = { false, false, false };
@@ -31,4 +31,4 @@
   unsigned long currentMillis;
   unsigned long servoMillis;
 
-  const unsigned long servo_refresh_rate = 15;
+  const unsigned long servo_refresh_rate = 10;

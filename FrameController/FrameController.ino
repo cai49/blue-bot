@@ -1,5 +1,5 @@
-#include<AccelStepper.h>
 #include<Servo.h>
+#include<AccelStepper.h>
 
 #include "Configuration.hpp"
 #include "HardwareRoutines.hpp"
@@ -11,6 +11,8 @@ void setup()
 {
   Serial.begin(115200);
   while(!Serial) {}
+
+  Serial.println("Serial Initialized Correctly");
   
   pinMode(LED_BUILTIN, OUTPUT);
 }
@@ -25,14 +27,8 @@ void loop()
     Serial.println(message);
 
     int message_value = message.toInt();
-    if (message_value < 75 && message_value > 50)
-    {
-      Serial.println("Turning Off Serial");
-      Serial.println("off");
-      Serial.end();
-
-      shut_device_off();
-    }
+    Serial.print("Value from mm: ");
+    Serial.println(_get_pulses(message_value));
 
     Serial.println("ok");
   }
@@ -64,7 +60,7 @@ void setup1()
 {
   servoMillis = millis();
 
-  end_effector.attach(SERVO_PIN);
+  end_effector.attach(SERVO_PIN, 544, 2400);
 
   steppers[0] = stp0;
   steppers[1] = stp1;
@@ -73,33 +69,30 @@ void setup1()
   configure_steppers();
   configure_limit_switches_pinmode();
 
-  find_zeros();
+  // find_zeros();
 
-  delay(1000);
+  // delay(1000);
 
-  set_position(50, 50, 50);
+  set_position(50., 50., 50.);
 }
 
 int pos = 0;
-int reverse_dir = 1;
+int dir = 1;
 void loop1()
 {
   currentMillis = millis();
 
   if (currentMillis - servoMillis >= servo_refresh_rate)
   {
-    if (pos >= 180)
+    servoMillis = currentMillis;
+    pos += dir;
+
+    if (pos == 0 || pos == 180)
     {
-      reverse_dir = -1;
-    }
-    else if (pos <= 0)
-    {
-      reverse_dir = 1;
+      dir = -dir;
     }
 
     end_effector.write(pos);
-    pos += reverse_dir;
-    servoMillis = currentMillis;
   }
 
   update_steppers();
@@ -133,7 +126,7 @@ void read_limit_switches_state(int *ls_states)
 {
   for (int i = 0; i < LS_N; ++i)
   {
-    ls_states[i] = digitalRead(LS_PINS[i]);
+    ls_states[i] = 1 - digitalRead(LS_PINS[i]);
   }
 }
 
@@ -174,8 +167,8 @@ void find_zeros()
       steppers[i].run();
     }
 
-    String message = "Axis {" + String(i) + "} found Zero";
-    Serial.println(message);
+    // String message = "Axis {" + String(i) + "} found Zero";
+    // Serial.println(message);
   }
 }
 
@@ -190,16 +183,16 @@ float _get_position_meters(int axis)
   return travel;
 }
 
-long _get_pulses(int travel)
+float _get_pulses(float travel)
 {
   float turns = travel / SCREW_PITCH; // revs
   
-  long pulses = turns * PPR; // pulses
+  float pulses = turns * PPR; // pulses
 
   return pulses;
 }
 
-bool set_position(int x, int y, int z)
+bool set_position(double x, double y, double z)
 {
   long x_pul = _get_pulses(x);
   long y_pul = _get_pulses(y);
@@ -222,7 +215,7 @@ bool set_position(int x, int y, int z)
   return true;
 }
 
-void set_position_now(int x, int y, int z)
+void set_position_now(double x, double y, double z)
 {
   long x_pul = _get_pulses(x);
   long y_pul = _get_pulses(y);

@@ -9,9 +9,9 @@ void read_limit_switches_state(int *ls_states);
 bool _scan_for_zero(int axis);
 
 float _get_position_meters(int axis);
-long _get_pulses(int travel);
+float _get_pulses(float travel);
 
-void set_position_now(int x, int y, int z);
-bool set_position(int x, int y, int z);
+bool set_position(double x, double y, double z);
+void set_position_now(double x, double y, double z);
 
 void update_steppers(void);

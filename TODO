@@ -32,13 +32,15 @@ Slave Interface:
 Frame Controller: 
 	Maybe using $2USD boards can be more beneficial if any problem is to occur
 	Pi Pico Migration:
-		☐	Research
-			☐	Serial communication
-			☐	Stepper motor interfacing
+		✔	Research (25-05-14 18:22)
+			✔	Serial communication (25-05-14 18:22)
+			✔	Stepper motor interfacing (25-05-14 18:22)
 			✔	OLED Screen UI (25-04-20 04:15)
 			The OLED works even in another thread
 			✔	MicroPython or Arduino SDK (25-04-20 04:16)
 			From what I researched, MicroPython is suitable
+		☐	Stepper Motor Testing for 3 concurrent steppers
+		☐	Zeroing routine test
 
 
 
