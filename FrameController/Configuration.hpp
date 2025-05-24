@@ -7,8 +7,8 @@
   const int stp1_PINS[2] = { 10, 11 };
   const int stp2_PINS[2] = { 13, 14 };
 
-  const int STP_MAX_SPEED = 400;
-  const int STP_MAX_ACCEL = 800;
+  const int STP_MAX_SPEED = 800;
+  const int STP_MAX_ACCEL = 1600;
 
   const int PPR = 800;       // pulse/rev
   const int SCREW_PITCH = 8; // mm/rev

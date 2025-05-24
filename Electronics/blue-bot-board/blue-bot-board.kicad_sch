@@ -2457,6 +2457,17 @@
 		)
 		(uuid "045eb2bf-ef9c-4e8b-9601-7a075db252d6")
 	)
+	(text "DIR\nSTP"
+		(exclude_from_sim no)
+		(at 54.61 103.632 0)
+		(effects
+			(font
+				(face "Roboto")
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "08fb7420-0ebe-4ca7-98fe-3f37ec3a8b20")
+	)
 	(text "Stepper Motors"
 		(exclude_from_sim no)
 		(at 81.28 99.314 0)
