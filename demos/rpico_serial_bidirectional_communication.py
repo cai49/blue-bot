@@ -36,4 +36,3 @@ while True:
     
     sys.stdout.write("\n\r")
     sys.stdout.write(">")
-    sys.stdout.
