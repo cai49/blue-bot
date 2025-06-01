@@ -17,11 +17,11 @@
 
   const int SCAN_POLLING_UPDATE_RATE = 900; // us
 
-  const double PEN_UP = -5;
-  const double PEN_DOWN = 5;
+  const double PEN_UP = 40;
+  const double PEN_DOWN = 0;
 
 /// Limit Switches
-  const int LS_N = 2;
+  const int LS_N = 3;
   const int LS_PINS[] = { 20, 19, 18 }; // X, Y, Z Axis
   const bool LS_ACTIVE = true;
   
